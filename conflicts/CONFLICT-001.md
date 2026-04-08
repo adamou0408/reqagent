@@ -2,7 +2,7 @@
 
 ## 狀態
 
-未解決
+已解決（resolved）
 
 ## 涉及 Spec
 
@@ -54,3 +54,36 @@ medium
 
 - `specs/req-framework-wrapper-app/spec.md` 第 63–66 行的「衝突標記（選填）」段落（⚠️ 標記）
 - 相關驗收條件：第 49 行（維護者 AC：手動仲裁衝突）、第 55 行（使用者 AC：無 jargon 開場）、第 58 行（使用者 AC：任何 step 都可改）
+
+## 決策記錄
+
+| 欄位 | 內容 |
+|---|---|
+| **選擇方案** | **(D) 逐 checkpoint 分類 + 默認強制** |
+| **決策者** | Framework 維護者（intake 提出者；本次 review 以人類身份透過 AskUserQuestion 裁決） |
+| **決策日期** | 2026-04-08 |
+| **決策管道** | `/req-resolve-conflict ./conflicts/CONFLICT-001.md` 的 HARD checkpoint AskUserQuestion |
+| **核心理由** | **與 framework AGENTS.md §5 的分類同構** —— HARD/SOFT checkpoint 加上 strict/balanced/auto 三個 autonomy level 已經是同一分層思路，wrapper 只需建立對應的 UI surfacing 層，不發明新概念，不犧牲任何一個 persona 的核心需求 |
+
+### 方案 (D) 的實作意涵
+
+12 個 slash command 會在 `/req-plan` 階段逐一歸為以下三類之一：
+
+1. **必須 surface 為使用者可見卡片**（對應 framework 的 HARD checkpoint）
+   - 預期至少包含：`/req-review`（spec 核可，使用者看到「請確認 AI 對你需求的理解」）、`/req-resolve-conflict`（衝突仲裁，使用者看到「有兩個想法打架了，你想選哪個？」）、`/req-deploy`（發布前最後確認，使用者看到「準備預覽/發布」）
+2. **背景執行 + 結果觸發 surface**（對應 framework 的 SOFT checkpoint；僅在「有發現」時跳卡片）
+   - 預期至少包含：`/req-research`（無重複發現則靜默）、`/req-detect-conflicts`（無衝突則靜默）、`/req-audit`（無 drift 則靜默）
+3. **完全背景**（純機械動作，有 log 即可）
+   - 預期至少包含：`/req-translate`、`/req-intake` 的檔案寫入、`/req-autonomy` 的設定切換
+4. **使用者觸發的 escape hatch**（獨立通道）
+   - 由「我想改前面說過的 X」這類自然語句觸發 `/req-iterate`，使用者無須知道指令名稱
+
+最終分類表由 `/req-plan` 階段的 state machine 設計文件正式定義，並以 checkpoint surfacing policy 表格形式回寫到 `spec.md` 的 v1.2 或 v1.3。
+
+### 後續動作
+
+- [x] 更新 `conflicts/CONFLICT-001.md` 狀態為 `resolved`（本次編輯完成）
+- [x] 更新 `specs/req-framework-wrapper-app/spec.md` 衝突標記區 ⚠️ → ✅ 並連回本決策記錄（本次 commit 完成）
+- [x] 記錄到 `docs/changelog.md`（本次 commit 完成）
+- [ ] 於 `/req-plan` 階段產出完整的 checkpoint surfacing policy 表，並更新 spec 版本
+- [ ] 兩個 persona 的「常見的利益衝突點」段可於 persona 下一次同步時註明此衝突已解決（非必要）

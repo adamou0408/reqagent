@@ -74,9 +74,8 @@
 
 ## 衝突標記（選填）
 
-- ⚠️ **CONFLICT-001（解決中，severity: medium）**：**Framework 維護者**希望保留 `/req-review`、`/req-detect-conflicts` 這類結構化 checkpoint 的強制性與可仲裁性；而**非技術使用者**希望「想到什麼改什麼、不要被問太多、不要看到 jargon」。經 `/req-detect-conflicts` 評估，這條張力被兩個 persona 文件各自獨立列為 top concern，且會影響 `/req-plan` 的 state machine 設計與 UI 元件清單，已正式記錄為 [`conflicts/CONFLICT-001.md`](../../conflicts/CONFLICT-001.md)。
-  - **人類仲裁方向（由 framework 維護者於 v1.1 review 階段給定）**：採 **(D) 逐 checkpoint 分類 + 默認強制** —— 12 個 slash command 的 checkpoint **逐一** 在 `/req-plan` 階段分類為「必須 surface 為 UI 元件」、「可背景執行但 UI 顯示進度」、或「可完全背景」三類之一；預設行為走 strict mode 全強制，未來若要放寬需 framework 維護者手動開啟個別 checkpoint 的背景化開關（開關狀態由 `.req.config.yml` 的 `autonomy_level` 管理）。
-  - 正式關閉動作由 `/req-resolve-conflict ./conflicts/CONFLICT-001.md` 於下一步執行（HARD checkpoint，需該命令實際寫入 conflict 檔案狀態為 `已解決` 並更新 `docs/changelog.md`）。
+- ✅ **CONFLICT-001（已解決，severity: medium）**：原張力是「結構化 checkpoint 強制性」vs.「自由流動的對話編輯」。2026-04-08 由 framework 維護者透過 `/req-resolve-conflict` 的 HARD checkpoint AskUserQuestion 裁決，採 **(D) 逐 checkpoint 分類 + 默認強制**。核心理由：**與 framework AGENTS.md §5 的 HARD/SOFT checkpoint + strict/balanced/auto 三層分類同構**，wrapper 只需建立對應的 UI surfacing 層，不發明新概念。完整決策記錄見 [`conflicts/CONFLICT-001.md`](../../conflicts/CONFLICT-001.md) 的「決策記錄」段。
+  - **落地動作**：12 個 slash command 的分類表由 `/req-plan` 階段的 state machine 設計文件正式定義（預期分為：必須 surface / 背景+結果觸發 / 完全背景 / escape hatch 四種），並以 checkpoint surfacing policy 表格形式回寫到本 spec 的 v1.2 或 v1.3。
 - 其他衝突：無（目前僅兩個 persona，其他潛在張力已被 research.md 的 Open questions 涵蓋）
 
 ## * 非功能需求
