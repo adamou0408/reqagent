@@ -26,6 +26,8 @@
   - 在 wrapper 的 chat UI 中 walk through 非技術使用者的流程，驗證每一個 step
   - 把發現的問題回寫到 `adamou0408/req` 的 framework commands 或 templates
   - 需要決定某個需求「屬於 wrapper 還是屬於 framework」
+  - 透過 wrapper 的「**測試失敗詳情**」面板，檢視 `/req-implement` 的 3-strike rollback：看每次重試的 diff、失敗的測試名、最後一次 stack trace 摘要，決定「放棄 task」/「手動修 code 後重跑」/「退回 spec 修 AC」
+  - 在 wrapper UI 內手動觸發 `git submodule update --remote .req-framework` 並執行 `req-sync-commands.sh`；遇到 major version bump 時閱讀 `MIGRATION.md` 再放行所有 session 繼續
 
 ## 與其他角色的關係
 - **會和哪些角色互動**：
