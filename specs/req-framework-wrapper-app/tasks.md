@@ -11,11 +11,11 @@
   - Output: `package.json`, `svelte.config.js`, `tsconfig.json`, `vite.config.ts`
 - [ ] **T02** — Install + configure Tailwind CSS + shadcn-svelte (Button, Card, Dialog, Input, Badge)
   - Output: `tailwind.config.js`, `src/lib/components/ui/`
-- [ ] **T03** — Install + configure Drizzle ORM + better-sqlite3; create schema (projects, messages, conflicts tables)
+- [ ] **T03** — Install + configure Drizzle ORM + better-sqlite3; create schema (projects w/ orchestrator_snapshot, messages, conflicts tables)
   - Output: `src/lib/server/db/schema.ts`, `src/lib/server/db/index.ts`, `drizzle.config.ts`
 - [ ] **T04** — Create Dockerfile: Node 20 base → npm install → Claude Code CLI global install → SvelteKit build → ENTRYPOINT
   - Output: `Dockerfile`, `.dockerignore`
-- [ ] **T05** — Create host launcher script: detect Docker → read ANTHROPIC_API_KEY from env or prompt → `docker run`
+- [ ] **T05** — Create host launcher script: detect Docker → read ANTHROPIC_API_KEY from OS keychain CLI (`security`/`secret-tool`/`cmdkey`) or prompt → store in keychain → `docker run -e`
   - Output: `scripts/launch.sh`
 - [ ] **T06** — Verify: `docker build` succeeds, `docker run` starts SvelteKit on port 3000, health endpoint `/api/health` returns 200
   - Output: passing smoke test
@@ -66,6 +66,14 @@
   - Output: `src/lib/components/PlanPopup.svelte`
 - [ ] **T22** — Implement Scaffolding Sandbox (C12): workspace isolation per project, `npm install --ignore-scripts`, `npm audit --audit-level=high` gate, allowed-commands whitelist
   - Output: `src/lib/server/sandbox.ts`
+- [ ] **T22a** — Implement Rollback Panel (C15): 3-strike failure → white-language panel with retry/simplify/pause options
+  - Output: `src/lib/components/RollbackPanel.svelte`
+- [ ] **T22b** — Implement Error Translator (C16): regex→白話 mapping for ~20 common error patterns + generic fallback + retry button + collapsible tech details
+  - Output: `src/lib/server/error-translator.ts`, `src/lib/server/error-patterns.ts`
+- [ ] **T22c** — Implement Session Resume: Orchestrator snapshot persist on state transition, project list on reopen, restore from snapshot, SSE reconnect with lastEventId
+  - Output: updates to `orchestrator.ts`, `+layout.svelte`, `sse/+server.ts`
+- [ ] **T22d** — Implement App Layout (C17): +layout.svelte with Sidebar + main chat area responsive layout
+  - Output: `src/routes/(app)/+layout.svelte`
 
 ---
 
@@ -89,13 +97,13 @@
 ```
 T01 → T02 → T03 → T04 → T05 → T06
                     ↓
-              T07 → T08 → T09 → T10
+              T07 → T08 → T09 → T10 → T22d (layout)
                            ↓
               T11 → T12 → T13 → T14 → T15 → T16 → T17
                                               ↓
-                                 T18, T19, T20, T21 (parallel)
+                                 T18, T19, T20, T21, T22a (parallel)
                                               ↓
-                                            T22
+                                      T22 → T22b → T22c
                                               ↓
                                  T23 → T24 → T25 → T26 → T27
 ```

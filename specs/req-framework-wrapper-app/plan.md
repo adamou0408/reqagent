@@ -10,11 +10,11 @@
 
 | Spec Section | Plan Coverage |
 |---|---|
-| 功能需求 §2.1–2.6 | §3 架構設計 全覆蓋 |
-| 非技術使用者 AC #1–#9 | §3.5 Surfacing Policy + §3.1 Chat UI |
-| 技術使用者 AC #1–#7 | §3.2 Backend API + §3.4 Scaffolding Sandbox |
-| CONSTITUTION 合規 | §5 安全性考量 + §3.6 Observability |
-| CONFLICT-001 | §3.5 以 Direction (D) 實作 |
+| 功能需求 §2.1–2.6 | §4 架構設計 全覆蓋 |
+| 非技術使用者 AC #1–#9 | §4.5 Surfacing Policy + §4.2 Chat UI + §4.6 Session Resume + §4.7 Error Translation |
+| 技術使用者 AC #1–#7 | §4.2 Backend API + §4.2 Scaffolding Sandbox |
+| CONSTITUTION 合規 | §8 安全性考量 + §3.3 Observability |
+| CONFLICT-001 | §4.5 以 Direction (D) 實作 |
 
 ---
 
@@ -50,7 +50,7 @@
 | Runtime | **Node.js 20 LTS** | SvelteKit adapter-node + Claude Code CLI 依賴 |
 | Delivery | **Docker image** (Q2=4) | `ghcr.io/adamou0408/reqagent:v0.1` |
 | Claude Code CLI | **@anthropic-ai/claude-code** npm global install in Docker | Q3=(a) subprocess spawn |
-| API Key | **keytar** on host → `ANTHROPIC_API_KEY` env var into container | Q4=(I)；host launcher script 讀 keychain → docker run -e |
+| API Key | **OS keychain CLI** on host → `ANTHROPIC_API_KEY` env var into container | Q4=(I)；launcher script 用 `security find-generic-password` (macOS) / `secret-tool lookup` (Linux) / `cmdkey` (Windows) 讀 keychain；若 keychain 為空則 prompt 使用者輸入並存入 keychain |
 
 ### 3.3 Observability
 
@@ -130,6 +130,9 @@
 | C12 | **Scaffolding Sandbox** | --ignore-scripts + npm audit gate | `src/lib/server/sandbox.ts` |
 | C13 | **DB Layer** | Drizzle schema + migrations | `src/lib/server/db/` |
 | C14 | **OTEL Setup** | OpenTelemetry SDK init + exporters | `src/lib/server/telemetry.ts` |
+| C15 | **Rollback Panel** | 3-strike 失敗白話面板（重試/簡化/暫停） | `src/lib/components/RollbackPanel.svelte` |
+| C16 | **Error Translator** | Claude Code error → 白話訊息 mapper | `src/lib/server/error-translator.ts` |
+| C17 | **App Layout** | SvelteKit +layout.svelte：Sidebar + main area | `src/routes/(app)/+layout.svelte` |
 
 ### 4.3 元件互動
 
@@ -154,7 +157,11 @@ User → C1 (Chat UI)
        │
        │ HARD checkpoint detected?
        ▼
-     C3/C4/C5/C6 (Panel popup) → User decision → C7 → C10 → continue
+     C3/C4/C5/C6/C15 (Panel popup) → User decision → C7 → C10 → continue
+
+Sandbox path (during IMPLEMENT):
+  C10 → C12 (Sandbox) → npm create / npm install --ignore-scripts → npm audit gate
+                         ↓ fail → C16 (Error Translator) → C1 (white-language toast + retry btn)
 ```
 
 ### 4.4 Orchestrator State Machine
@@ -167,16 +174,42 @@ IDLE → INTAKE → RESEARCH → TRANSLATE → DETECT_CONFLICTS
   │                           PLAN ← RESOLVE_CONFLICT
   │                              │
   │                              ▼ (HARD checkpoint: PlanPopup)
-  │                           IMPLEMENT
-  │                              │
-  │                              ▼ (HARD checkpoint: ReviewPanel)
-  │                           REVIEW
-  │                              │
+  │                           IMPLEMENT ←─────────┐
+  │                              │                 │ (request-changes)
+  │                              │    ┌────────────┤
+  │                              ▼    │            │
+  │                           REVIEW ─┘    3-strike fail → ROLLBACK (C15)
+  │                              │                          ↓
+  │                              │              user picks: retry / simplify / pause
   │                              ▼ (HARD checkpoint: DeployPanel)
   │                           DEPLOY → DONE
   │
   └── ITERATE (escape hatch, any state)
 ```
+
+### 4.6 Session Resume
+
+Orchestrator state 持久化到 SQLite（`projects.state` + `projects.orchestrator_snapshot`）。
+- **每次 state transition** 時寫入 snapshot（當前 state + pending command + context）
+- **重開 wrapper** 時，Chat UI 從 DB 載入「進行中專案」清單
+- **使用者選擇專案** → Orchestrator 從 snapshot restore → 繼續下一步
+- SSE reconnect：前端用 `EventSource` 自帶 reconnect + `lastEventId`
+
+### 4.7 Error Translation
+
+C16 (Error Translator) 將 Claude Code 的 raw error 轉為白話：
+- 維護 `error-patterns.ts`：regex → 白話模板 mapping（~20 常見 pattern）
+- 未匹配的 error → 通用訊息「AI 遇到了問題，你可以按『重試』讓它再試一次」
+- 每個白話錯誤訊息都附帶 **「讓 AI 再試一次」按鈕** + **「查看技術細節」摺疊區**
+
+### 4.8 Scaffolded App Template
+
+`/req-implement` scaffolding 使用的 CRUD 範本來源：
+- **SvelteKit skeleton**：`npm create svelte@latest` (skeleton project)
+- **Drizzle + better-sqlite3**：由 Claude Code 根據使用者描述的 entities 自動產生 schema
+- **Demo 帳號**：scaffolded app 包含 hardcoded demo user（email: demo@example.com / pass: demo1234）
+- **CRUD pages**：Claude Code 根據 schema 生成 `/[entity]` 路由（list / create / edit / delete）
+- 此範本不需要預建 — Claude Code 本身就能生成，plan 只需確保 prompt 裡包含這些要求
 
 ### 4.5 Surfacing Policy (CONFLICT-001 Direction D)
 
@@ -207,7 +240,7 @@ IDLE → INTAKE → RESEARCH → TRANSLATE → DETECT_CONFLICTS
 |---|---|---|---|---|
 | R1 | Claude Code CLI API 不穩定或輸出格式變更 | 中 | 高 | Bridge 層 (C11) 用 `--output-format json` + 寬鬆 parser；version pin in Dockerfile |
 | R2 | shadcn-svelte 與官方 shadcn 差異導致 UI 碎片 | 低 | 中 | 只用 Button/Card/Dialog/Input/Badge 5 個基礎元件 |
-| R3 | SQLite 在 Docker volume mount 上效能問題 | 低 | 低 | WAL mode；DB 放在 container 內 tmpdir，exit 時 sync 到 volume |
+| R3 | SQLite 在 Docker volume mount 上效能問題 | 低 | 低 | WAL mode 開啟；DB 直接放在 mounted volume `/workspace/data/reqagent.db`（統一位置，不做 tmpdir sync） |
 | R4 | OpenTelemetry SDK bundle 過大影響啟動時間 | 低 | 低 | Tree-shake；只載入 node SDK 不載 browser SDK |
 | R5 | Docker Desktop 授權問題（企業 Mac > 250 人） | 中 | 中 | 文件說明替代方案（Colima、Rancher Desktop）；v0.2 評估 Tauri |
 
@@ -225,6 +258,7 @@ export const projects = sqliteTable('projects', {
   description: text('description'),
   state: text('state').notNull().default('intake'),
   // intake|research|translate|conflicts|plan|implement|review|deploy|done
+  orchestratorSnapshot: text('orchestrator_snapshot', { mode: 'json' }), // session resume
   specPath: text('spec_path'),
   planPath: text('plan_path'),
   workspacePath: text('workspace_path'),
@@ -292,7 +326,7 @@ export const conflicts = sqliteTable('conflicts', {
 | Service | Usage | Failure Mode |
 |---|---|---|
 | Anthropic API | Claude Code CLI → API calls | Wrapper 顯示 error toast + retry button |
-| npm registry | Scaffolding `npm create svelte@latest` | Offline fallback: cached template in image |
+| npm registry | Scaffolding `npm create svelte@latest` | Error toast + retry button；offline template cache 為 v0.2 |
 
 ### 7.6 回滾策略
 
