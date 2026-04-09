@@ -1,0 +1,15 @@
+node_modules
+build
+.svelte-kit
+.git
+.req-framework
+specs
+conflicts
+docs
+intake
+personas
+reviews
+tests
+*.md
+drizzle/*.db
+data
