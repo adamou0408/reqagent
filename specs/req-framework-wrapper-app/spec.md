@@ -67,6 +67,7 @@
   - [ ] 使用者最後按一個「**預覽**」按鈕（MVP 僅支援 localhost 預覽，**不含外網發布**；外網發布為 v0.2 功能），能在瀏覽器開啟一個可實際使用的 CRUD 網頁應用（至少包含：登入一個內建 demo 帳號、建立 / 編輯 / 刪除 / 查看資料表中的紀錄）
   - [ ] 任何錯誤訊息（包含底層 `/req-implement` 的測試失敗）都會被翻譯為白話，並提供「讓 AI 自己再試一次」的按鈕，而不是讓使用者看到原始 stack trace
   - [ ] 整個流程完成前不要求使用者安裝任何本地工具（wrapper 本體可為本地桌面 app 或 localhost web UI，但對使用者而言只要點一下就能開；若 Q3 選 (a) 則 Claude Code CLI 必須被 wrapper 的 installer **bundle 或背景安裝**，使用者不需獨自處理）
+    - **v1.2 修訂（/req-plan 期間）**：**Docker Desktop 為 v0.1 唯一例外前置需求**——使用者必須先安裝 Docker Desktop（macOS / Windows）或 Docker Engine（Linux）方可跑 wrapper container。Wrapper 的 installer script 會偵測 Docker 是否存在並引導使用者到 docker.com。此例外於 v0.2 視是否改為 Tauri desktop app 而可能移除。
   - [ ] **（新）Session resume**：使用者關閉瀏覽器、斷線、或隔日再回來打開 wrapper，可以從之前停下的 step 繼續；wrapper 在重開時自動列出「進行中的專案」，使用者選一個就能回到當時的對話脈絡與進度
   - [ ] **（新）Rollback 白話解釋**：當底層 `/req-implement` 遇到 3-strike 測試失敗 HARD checkpoint 時，wrapper 向使用者顯示白話訊息（例：「AI 試了 3 次都沒辦法讓程式跑起來，你可以選：① 請 AI 改用另一種做法重試 ② 簡化你之前描述的需求 ③ 暫停，等等再回來」），**絕不**向使用者直接顯示 stack trace 或 test runner 輸出
   - [ ] **（新）多專案**：同一位使用者可以在 wrapper 內同時進行多個不同 app 的開發，每個 app 有獨立的 `specs/{slug}/` 目錄與 chat session；在 chat UI 左側有一個「我的專案」清單可切換，切換時**不丟失**任何一邊的進度
