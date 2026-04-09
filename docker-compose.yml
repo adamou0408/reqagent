@@ -1,0 +1,14 @@
+services:
+  reqagent:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - reqagent-data:/workspace/data
+    environment:
+      - NODE_ENV=production
+      - REQAGENT_DB_PATH=/workspace/data/reqagent.db
+    restart: unless-stopped
+
+volumes:
+  reqagent-data:
