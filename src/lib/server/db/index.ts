@@ -1,12 +1,28 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 import * as schema from './schema';
 import { join } from 'path';
+import { mkdirSync } from 'fs';
 
-const DB_PATH = process.env.REQAGENT_DB_PATH || join(process.cwd(), 'data', 'reqagent.db');
+let _db: BetterSQLite3Database<typeof schema> | null = null;
 
-const sqlite = new Database(DB_PATH);
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('foreign_keys = ON');
+export function getDb(): BetterSQLite3Database<typeof schema> {
+	if (!_db) {
+		const dbPath = process.env.REQAGENT_DB_PATH || join(process.cwd(), 'data', 'reqagent.db');
+		const dir = dbPath.substring(0, dbPath.lastIndexOf('/'));
+		mkdirSync(dir, { recursive: true });
 
-export const db = drizzle(sqlite, { schema });
+		const sqlite = new Database(dbPath);
+		sqlite.pragma('journal_mode = WAL');
+		sqlite.pragma('foreign_keys = ON');
+		_db = drizzle(sqlite, { schema });
+	}
+	return _db;
+}
+
+// Convenience getter — lazily initialized
+export const db = new Proxy({} as BetterSQLite3Database<typeof schema>, {
+	get(_target, prop) {
+		return (getDb() as Record<string | symbol, unknown>)[prop];
+	}
+});
