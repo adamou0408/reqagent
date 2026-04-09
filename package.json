@@ -20,7 +20,7 @@
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
-    "better-sqlite3": "^11.0.0",
+    "@libsql/client": "^0.14.0",
     "bits-ui": "^2.17.3",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.0",
@@ -32,7 +32,6 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tailwindcss/vite": "^4.2.2",
-    "@types/better-sqlite3": "^7.6.0",
     "drizzle-kit": "^0.30.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^4.2.2",

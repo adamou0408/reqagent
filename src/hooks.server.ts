@@ -2,8 +2,8 @@ import type { Handle } from '@sveltejs/kit';
 import { nanoid } from 'nanoid';
 import { initTelemetry, getTracer } from '$lib/server/telemetry';
 
-// Initialize OpenTelemetry on server start
-initTelemetry();
+// Initialize OpenTelemetry on server start (async, non-blocking)
+initTelemetry().catch(() => {});
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const correlationId = event.request.headers.get('x-correlation-id') || nanoid();
