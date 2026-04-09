@@ -10,6 +10,14 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-prometheus": "^0.214.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
+    "@opentelemetry/resources": "^2.6.1",
+    "@opentelemetry/sdk-metrics": "^2.6.1",
+    "@opentelemetry/sdk-node": "^0.214.0",
+    "@opentelemetry/sdk-trace-base": "^2.6.1",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
     "better-sqlite3": "^11.0.0",
